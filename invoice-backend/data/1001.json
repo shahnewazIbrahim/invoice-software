@@ -1,0 +1,14 @@
+{
+  "invoiceNumber": "1001",
+  "invoiceDate": "2024-09-16",
+  "dueDate": "2024-09-27",
+  "clientName": "The name ",
+  "clientEmail": "shahnewaz886@gmail.com",
+  "items": [
+    {
+      "description": "78",
+      "quantity": 1,
+      "price": 70
+    }
+  ]
+}
