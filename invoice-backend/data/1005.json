@@ -1,19 +1,19 @@
 {
   "invoiceNumber": "1005",
-  "invoiceDate": "2024-09-10",
-  "dueDate": "2024-09-26",
-  "clientName": "MD Shahnewaz Ibrahim Himu",
-  "clientEmail": "shahnewaz886@gmail.com",
+  "invoiceDate": "2024-09-30",
+  "dueDate": "2024-10-10",
+  "clientName": " node ",
+  "clientEmail": "node@gmail.com",
   "items": [
     {
-      "description": "I Phone 16",
-      "quantity": 1,
-      "price": 300
+      "description": "Vue",
+      "quantity": 2,
+      "price": 21
     },
     {
-      "description": "Iphone 11",
-      "quantity": 1,
-      "price": 200
+      "description": "React",
+      "quantity": 3,
+      "price": 5
     }
   ]
 }
