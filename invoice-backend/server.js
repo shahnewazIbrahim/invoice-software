@@ -146,6 +146,32 @@ app.put('/invoices/:invoiceNumber', (req, res) => {
 });
 
 
+app.delete('/invoices/:invoiceNumber', (req, res) => {
+  const invoiceNumber = req.params.invoiceNumber;
+  const filePath = path.join(dataFolder, `${invoiceNumber}.json`);
+
+  // Check if the invoice file exists before attempting to delete it
+  fs.access(filePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      if (err.code === 'ENOENT') {
+        return res.status(404).json({ error: 'Invoice not found' });
+      } else {
+        return res.status(500).json({ error: 'Failed to access invoice' });
+      }
+    }
+
+    // If the file exists, delete it
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Failed to delete invoice' });
+      }
+      res.json({ message: 'Invoice deleted successfully' });
+    });
+  });
+});
+
+
+
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

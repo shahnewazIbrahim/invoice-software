@@ -661,6 +661,11 @@ video {
   display: grid;
 }
 
+.size-6 {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
 .min-h-screen {
   min-height: 100vh;
 }
