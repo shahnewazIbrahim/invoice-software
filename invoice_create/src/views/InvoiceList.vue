@@ -104,12 +104,12 @@ const deleteInvoice = async (id) => {
             >
               Client
             </th>
-            <!-- <th
+            <th
               scope="col"
               class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               Status
-            </th> -->
+            </th>
             <th
               scope="col"
               class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -135,17 +135,17 @@ const deleteInvoice = async (id) => {
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               {{ invoice.clientName }}
             </td>
-            <!-- <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               <span
                 :class="{
-                  'text-green-500': invoice.status === 'Paid',
-                  'text-yellow-500': invoice.status === 'Pending',
-                  'text-red-500': invoice.status === 'Overdue',
+                  'text-green-500': invoice.status === 'paid',
+                  'text-yellow-500': invoice.status === 'pending',
+                  'text-red-500': invoice.status === 'overdue',
                 }"
               >
-                {{ invoice.status }}
+                {{ invoice.status.toUpperCase() }}
               </span>
-            </td> -->
+            </td>
             <td
               class="px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center"
             >

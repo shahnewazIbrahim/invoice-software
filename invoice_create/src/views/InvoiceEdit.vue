@@ -68,22 +68,43 @@ const saveInvoice = async () => {
     </h1>
 
     <!-- Client Details Section -->
-    <div class="mb-4">
-      <h2 class="text-lg font-semibold">Client Details:</h2>
-      <label class="block text-sm font-medium text-gray-700">Name</label>
-      <input
-        v-model="invoice.value.clientName"
-        type="text"
-        required
-        class="mt-1 block w-full p-2 border rounded-md"
-      />
+    <h2 class="text-lg font-semibold">Client Details:</h2>
+    <div class="grid grid-cols-3 gap-2 mb-4">
+        <div>
 
-      <label class="block text-sm font-medium text-gray-700 mt-4">Email</label>
-      <input
-        v-model="invoice.value.clientEmail"
-        type="email"
-        class="mt-1 block w-full p-2 border rounded-md"
-      />
+            <label class="block text-sm font-medium text-gray-700">Name</label>
+            <input
+              v-model="invoice.value.clientName"
+              type="text"
+              required
+              class="mt-1 block w-full p-2 border rounded-md"
+            />
+        </div>
+        <div>
+
+            <label class="block text-sm font-medium text-gray-700">Email</label>
+            <input
+              v-model="invoice.value.clientEmail"
+              type="email"
+              class="mt-1 block w-full p-2 border rounded-md"
+            />
+        </div>
+        <div>
+
+            <label class="block text-sm font-medium text-gray-700">Status</label>
+            <select
+              id="client-email"
+              v-model="invoice.value.status"
+              class="shadow-sm appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              placeholder="Client's Email"
+              required
+            >
+              <option value="">Select status</option>
+              <option value="paid" :selected="invoice.value.status == 'paid'">Paid</option>
+              <option value="pending" :selected="invoice.value.status == 'pending'">Pending</option>
+              <option value="overdue" :selected="invoice.value.status == 'overdue'">Overdue</option>
+            </select>
+        </div>
     </div>
 
     <!-- Invoice Dates Section -->
@@ -118,7 +139,6 @@ const saveInvoice = async () => {
         :key="index"
         class="mb-4"
       >
-
         <div class="grid grid-cols-3 gap-4 mt-4">
           <div>
             <label class="block text-sm font-medium text-gray-700"

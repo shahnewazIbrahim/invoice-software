@@ -1,12 +1,13 @@
 {
   "invoiceNumber": "1001",
   "invoiceDate": "2024-09-11",
-  "dueDate": "2024-10-07",
+  "dueDate": "2024-09-26",
   "clientName": "MD Shahnewaz Ibrahim Himu",
-  "clientEmail": "sajalhossain3232@gmail.com",
+  "clientEmail": "shahnewaz886@gmail.com",
+  "status": "paid",
   "items": [
     {
-      "description": "dfdfdf",
+      "description": "ererer",
       "quantity": 1,
       "price": 20
     }

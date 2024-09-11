@@ -13,6 +13,7 @@ const invoice = ref({
   dueDate: "",
   clientName: "",
   clientEmail: "",
+  status: "",
   items: [{ description: "", quantity: 1, price: 0 }],
 });
 
@@ -55,7 +56,7 @@ const submitInvoice = () => {
         clientEmail: "",
         items: [{ description: "", quantity: 1, price: 0 }],
       };
-      
+
       toaster.show(`${response.data.message}`, {
         type: "success",
         position: "top-right",
@@ -72,7 +73,10 @@ const submitInvoice = () => {
 </script>
 
 <template>
-  <form @submit.prevent="submitInvoice" class="bg-white p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
+  <form
+    @submit.prevent="submitInvoice"
+    class="bg-white p-8 rounded-lg shadow-lg max-w-4xl mx-auto"
+  >
     <h2 class="text-3xl font-bold mb-6 text-gray-800">Create New Invoice</h2>
 
     <!-- Invoice Metadata -->
@@ -124,7 +128,7 @@ const submitInvoice = () => {
       <h3 class="text-xl font-semibold text-gray-700 mb-4">
         Client Information
       </h3>
-      <div class="grid grid-cols-2 gap-6">
+      <div class="grid grid-cols-3 gap-6">
         <div>
           <label
             class="block text-gray-700 text-sm font-bold mb-2"
@@ -153,6 +157,26 @@ const submitInvoice = () => {
             class="shadow-sm appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             placeholder="Client's Email"
           />
+        </div>
+
+        <div>
+          <label
+            class="block text-gray-700 text-sm font-bold mb-2"
+            for="client-email"
+            >Status</label
+          >
+          <select
+            id="client-email"
+            v-model="invoice.status"
+            class="shadow-sm appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            placeholder="Client's Email"
+            required
+          >
+            <option value="">Select status</option>
+            <option value="paid">Complete</option>
+            <option value="pending">Pending</option>
+            <option value="overdue">Overdue</option>
+          </select>
         </div>
       </div>
     </div>
