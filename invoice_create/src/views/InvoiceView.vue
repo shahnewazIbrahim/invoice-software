@@ -58,6 +58,7 @@ function printInvoice() {
       <h2 class="text-lg font-semibold">Invoice Details:</h2>
       <p><strong>Date:</strong> {{ invoice.invoiceDate }}</p>
       <p><strong>Due Date:</strong> {{ invoice.dueDate }}</p>
+      <p><strong>Status:</strong> {{ invoice.status.toUpperCase() }}</p>
     </div>
 
     <div class="mb-4">
