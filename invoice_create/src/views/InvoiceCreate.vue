@@ -72,7 +72,7 @@ const submitInvoice = () => {
 </script>
 
 <template>
-  <div class="bg-white p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
+  <form @submit.prevent="submitInvoice" class="bg-white p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
     <h2 class="text-3xl font-bold mb-6 text-gray-800">Create New Invoice</h2>
 
     <!-- Invoice Metadata -->
@@ -85,6 +85,7 @@ const submitInvoice = () => {
         >
         <input
           type="text"
+          required
           id="invoice-number"
           v-model="invoice.invoiceNumber"
           class="shadow-sm appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -101,6 +102,7 @@ const submitInvoice = () => {
           type="date"
           id="invoice-date"
           v-model="invoice.invoiceDate"
+          required
           class="shadow-sm appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
         />
       </div>
@@ -133,6 +135,7 @@ const submitInvoice = () => {
             type="text"
             id="client-name"
             v-model="invoice.clientName"
+            required
             class="shadow-sm appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             placeholder="Client's Name"
           />
@@ -168,16 +171,19 @@ const submitInvoice = () => {
             v-model="item.description"
             class="shadow-sm appearance-none border rounded col-span-2 py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             placeholder="Item Description"
+            required
           />
           <input
             type="number"
             v-model="item.quantity"
+            required
             class="shadow-sm appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             placeholder="Quantity"
           />
           <input
             type="number"
             v-model="item.price"
+            required
             class="shadow-sm appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             placeholder="Price"
           />
@@ -222,14 +228,14 @@ const submitInvoice = () => {
     </div>
 
     <!-- Submit Button -->
+    <!-- @click="submitInvoice" -->
     <div class="mt-8 flex justify-end">
       <button
         type="submit"
         class="bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-6 rounded focus:outline-none focus:shadow-outline"
-        @click="submitInvoice"
       >
         Create Invoice
       </button>
     </div>
-  </div>
+  </form>
 </template>

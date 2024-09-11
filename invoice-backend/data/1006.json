@@ -1,0 +1,14 @@
+{
+  "invoiceNumber": "1006",
+  "invoiceDate": "2024-09-11",
+  "dueDate": "2024-09-18",
+  "clientName": "MD Shahnewaz Ibrahim Himu",
+  "clientEmail": "shahnewaz886@gmail.com",
+  "items": [
+    {
+      "description": "oc1",
+      "quantity": 1,
+      "price": 50
+    }
+  ]
+}
