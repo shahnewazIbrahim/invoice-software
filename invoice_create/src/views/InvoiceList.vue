@@ -1,18 +1,11 @@
 <script setup>
 import axios from "axios";
 import { onMounted, ref } from "vue";
+import { useRoute } from "vue-router";
 
 const invoices = ref([]);
 
-function viewInvoice(id) {
-  // Logic to view the details of the selected invoice
-  this.$router.push({ name: "ViewInvoice", params: { id } });
-}
-
-function editInvoice(id) {
-  // Logic to edit the selected invoice
-  this.$router.push({ name: "EditInvoice", params: { id } });
-}
+const router = useRoute()
 
 function getAmount(invoice) {
   // Logic to edit the selected invoice
@@ -119,18 +112,18 @@ onMounted(async() => {
               </span>
             </td> -->
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-              <button
-                @click="viewInvoice(invoice.invoiceNumber)"
+              <router-link
+                :to="`/invoices/${invoice.invoiceNumber}`"
                 class="text-blue-500 hover:text-blue-700"
               >
                 View
-              </button>
-              <button
-                @click="editInvoice(invoice.invoiceNumber)"
+              </router-link>
+              <router-link
+                :to="`/invoices/edit/${invoice.invoiceNumber}`"
                 class="ml-4 text-blue-500 hover:text-blue-700"
               >
                 Edit
-              </button>
+              </router-link>
             </td>
           </tr>
         </tbody>

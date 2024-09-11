@@ -90,6 +90,62 @@ app.get('/list-invoices', (req, res) => {
 });
 
 
+// edit invoice view
+app.get('/invoices/:invoiceNumber', (req, res) => {
+  const invoiceNumber = req.params.invoiceNumber;
+  const filePath = path.join(dataFolder, `${invoiceNumber}.json`);
+
+  fs.readFile(filePath, 'utf8', (err, data) => {
+    if (err) {
+      if (err.code === 'ENOENT') {
+        return res.status(404).json({ error: 'Invoice not found' });
+      } else {
+        return res.status(500).json({ error: 'Failed to read invoice' });
+      }
+    }
+
+    try {
+      const invoice = JSON.parse(data);
+      res.json({ invoice });
+    } catch (parseError) {
+      res.status(500).json({ error: 'Failed to parse invoice' });
+    }
+  });
+});
+
+
+app.put('/invoices/:invoiceNumber', (req, res) => {
+  const invoiceNumber = req.params.invoiceNumber;
+  const updatedInvoice = req.body;
+
+  // Ensure the invoiceNumber in the URL matches the one in the body (if present)
+  if (!updatedInvoice || updatedInvoice.invoiceNumber !== invoiceNumber) {
+    return res.status(400).json({ error: 'Invoice number mismatch or invalid data' });
+  }
+
+  const filePath = path.join(dataFolder, `${invoiceNumber}.json`);
+
+  // Check if the invoice exists before updating
+  fs.access(filePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      if (err.code === 'ENOENT') {
+        return res.status(404).json({ error: 'Invoice not found' });
+      } else {
+        return res.status(500).json({ error: 'Failed to access invoice' });
+      }
+    }
+
+    // If the invoice exists, update it with the new data
+    fs.writeFile(filePath, JSON.stringify(updatedInvoice, null, 2), (err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Failed to update invoice' });
+      }
+      res.json({ message: 'Invoice updated successfully' });
+    });
+  });
+});
+
+
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

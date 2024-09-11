@@ -3,7 +3,7 @@ import { useRoute } from "vue-router";
 const router = useRoute();
 </script>
 <template>
-  <aside class="w-64 bg-gray-800 text-white p-4">
+  <aside class="w-64 bg-gray-800 text-white p-4 print:hidden">
     <nav>
       <ul>
         <li class="mb-2">

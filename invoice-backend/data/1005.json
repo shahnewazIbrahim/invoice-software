@@ -9,11 +9,6 @@
       "description": "Vue",
       "quantity": 2,
       "price": 21
-    },
-    {
-      "description": "React",
-      "quantity": 3,
-      "price": 5
     }
   ]
 }
