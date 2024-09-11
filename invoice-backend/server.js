@@ -43,11 +43,66 @@ app.get('/count-invoices', (req, res) => {
 
     // Filter out only .json files
     const invoiceFiles = files.filter(file => file.endsWith('.json'));
-    const invoiceCount = invoiceFiles.length;
 
-    res.json({ count: invoiceCount });
+    let totalCount = 0;
+    let pendingCount = 0;
+    let overdueCount = 0;
+    let paidCount = 0;
+
+    let filesRead = 0;
+
+    // Read each invoice file and count based on status
+    invoiceFiles.forEach(file => {
+      const filePath = path.join(dataFolder, file);
+
+      fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) {
+          return res.status(500).json({ error: 'Failed to read invoice file' });
+        }
+
+        try {
+          const invoice = JSON.parse(data);
+          
+          totalCount++;
+
+          // Count based on invoice status
+          if (invoice.status === 'pending') {
+            pendingCount++;
+          } else if (invoice.status === 'overdue') {
+            overdueCount++;
+          } else if (invoice.status === 'paid') {
+            paidCount++;
+          }
+        } catch (parseError) {
+          return res.status(500).json({ error: 'Failed to parse invoice file' });
+        }
+
+        filesRead++;
+
+        // When all files are read, send the response
+        if (filesRead === invoiceFiles.length) {
+          res.json({
+            totalCount: totalCount,
+            pendingCount: pendingCount,
+            overdueCount: overdueCount,
+            paidCount: paidCount
+          });
+        }
+      });
+    });
+
+    // If there are no invoice files, send counts as zero
+    if (invoiceFiles.length === 0) {
+      res.json({
+        totalCount: 0,
+        pendingCount: 0,
+        overdueCount: 0,
+        paidCount: 0
+      });
+    }
   });
 });
+
 
 
 app.get('/list-invoices', (req, res) => {
