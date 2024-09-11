@@ -58,8 +58,9 @@ const saveInvoice = async () => {
 </script>
 
 <template>
-  <div
+  <form
     v-if="invoice?.value"
+    @submit.prevent="saveInvoice"
     class="container mx-auto p-6 bg-white shadow-md rounded-lg"
   >
     <h1 class="text-2xl font-bold mb-6">
@@ -73,6 +74,7 @@ const saveInvoice = async () => {
       <input
         v-model="invoice.value.clientName"
         type="text"
+        required
         class="mt-1 block w-full p-2 border rounded-md"
       />
 
@@ -93,6 +95,7 @@ const saveInvoice = async () => {
       <input
         v-model="invoice.value.invoiceDate"
         type="date"
+        required
         class="mt-1 block w-full p-2 border rounded-md"
       />
 
@@ -102,6 +105,7 @@ const saveInvoice = async () => {
       <input
         v-model="invoice.value.dueDate"
         type="date"
+        required
         class="mt-1 block w-full p-2 border rounded-md"
       />
     </div>
@@ -114,16 +118,20 @@ const saveInvoice = async () => {
         :key="index"
         class="mb-4"
       >
-        <label class="block text-sm font-medium text-gray-700"
-          >Description</label
-        >
-        <input
-          v-model="item.description"
-          type="text"
-          class="mt-1 block w-full p-2 border rounded-md"
-        />
 
-        <div class="grid grid-cols-2 gap-4 mt-4">
+        <div class="grid grid-cols-3 gap-4 mt-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Description</label
+            >
+            <input
+              v-model="item.description"
+              type="text"
+              required
+              class="mt-1 block w-full p-2 border rounded-md"
+            />
+          </div>
+
           <div>
             <label class="block text-sm font-medium text-gray-700"
               >Quantity</label
@@ -131,6 +139,7 @@ const saveInvoice = async () => {
             <input
               v-model="item.quantity"
               type="number"
+              required
               class="mt-1 block w-full p-2 border rounded-md"
             />
           </div>
@@ -139,6 +148,7 @@ const saveInvoice = async () => {
             <input
               v-model="item.price"
               type="number"
+              required
               class="mt-1 block w-full p-2 border rounded-md"
             />
           </div>
@@ -151,6 +161,7 @@ const saveInvoice = async () => {
 
       <button
         @click="addItem"
+        type="button"
         class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
       >
         Add New Item
@@ -160,11 +171,11 @@ const saveInvoice = async () => {
     <!-- Save Button -->
     <div class="text-right">
       <button
-        @click="saveInvoice"
+        type="submit"
         class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
       >
         Save Changes
       </button>
     </div>
-  </div>
+  </form>
 </template>
