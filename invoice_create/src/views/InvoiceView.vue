@@ -1,9 +1,10 @@
 <script setup>
 import axios from "axios";
 import { computed, onBeforeMount, ref } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute();
+const router = useRouter();
 
 const invoice = ref({});
 
@@ -23,6 +24,10 @@ onBeforeMount(async () => {
   invoice.value = response.data.invoice;
 });
 
+const goBack = () => {
+  router.go(-1);
+};
+
 // Function to trigger print
 function printInvoice() {
   window.print();
@@ -34,18 +39,24 @@ function printInvoice() {
     <div class="flex justify-between items-center mb-4">
       <h1 class="text-2xl font-bold">Invoice #{{ invoice.invoiceNumber }}</h1>
       <div class="flex items-center gap-5">
-        <router-link
-        :to="`/invoices/edit/${invoice.invoiceNumber}`"
-        class="bg-gradient-to-l from-pink-400 to-pink-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-      >
-        Edit Invoice
-      </router-link>
         <button
-        @click="printInvoice"
-        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-      >
-        Print Invoice
-      </button>
+          @click="goBack"
+          class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded print:hidden"
+        >
+          Go Back
+        </button>
+        <router-link
+          :to="`/invoices/edit/${invoice.invoiceNumber}`"
+          class="bg-gradient-to-l from-pink-400 to-pink-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded  print:hidden"
+        >
+          Edit Invoice
+        </router-link>
+        <button
+          @click="printInvoice"
+          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded print:hidden"
+        >
+          Print Invoice
+        </button>
       </div>
     </div>
     <div class="mb-4">
