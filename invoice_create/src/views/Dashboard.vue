@@ -2,10 +2,17 @@
 import axios from "axios";
 import { onMounted, ref } from "vue";
 const totalInvoices = ref(0)
+const pendingInvoices = ref(0)
+const overdueInvoices = ref(0)
+const paidInvoices = ref(0)
 onMounted(async() => {
    let response =  await axios.get('http://localhost:3000/count-invoices')
+    console.log(response.data);
     
-   totalInvoices.value = response.data.count
+   totalInvoices.value = response.data.totalCount
+   pendingInvoices.value = response.data.pendingCount
+   overdueInvoices.value = response.data.overdueCount
+   paidInvoices.value = response.data.paidCount
 })
 </script>
 
@@ -34,16 +41,22 @@ onMounted(async() => {
         <p class="text-3xl font-bold text-blue-600 mt-2">{{ totalInvoices }}</p>
       </div>
 
+      <!-- Paid Invoices Card -->
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-lg font-semibold text-gray-700">Paid Invoices</h2>
+        <p class="text-3xl font-bold text-yellow-600 mt-2">{{ paidInvoices }}</p>
+      </div>
+
       <!-- Pending Invoices Card -->
       <div class="bg-white p-6 rounded-lg shadow-md">
         <h2 class="text-lg font-semibold text-gray-700">Pending Invoices</h2>
-        <p class="text-3xl font-bold text-yellow-600 mt-2">{{ 2}}</p>
+        <p class="text-3xl font-bold text-yellow-600 mt-2">{{ pendingInvoices }}</p>
       </div>
 
       <!-- Overdue Invoices Card -->
       <div class="bg-white p-6 rounded-lg shadow-md">
         <h2 class="text-lg font-semibold text-gray-700">Overdue Invoices</h2>
-        <p class="text-3xl font-bold text-red-600 mt-2">{{ 1 }}</p>
+        <p class="text-3xl font-bold text-red-600 mt-2">{{ overdueInvoices }}</p>
       </div>
 
     </main>
