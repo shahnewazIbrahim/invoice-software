@@ -2,8 +2,16 @@ const express = require('express');
 const cors = require('cors');  // Import the cors middleware
 const fs = require('fs');
 const path = require('path');
+// const mysql = require('mysql2');
 
 const app = express();
+
+// const connection = mysql.createConnection({
+//   host: 'localhost',  // Replace with your database host
+//   user: 'root',  // Replace with your MySQL username
+//   password: '',  // Replace with your MySQL password
+//   database: 'hydra.sqlite'  // Replace with your database name
+// });
 
 // Enable CORS for all routes
 app.use(cors());
@@ -15,6 +23,30 @@ const dataFolder = path.join(__dirname, 'data');
 if (!fs.existsSync(dataFolder)) {
   fs.mkdirSync(dataFolder);
 }
+
+// connection.connect((err) => {
+//   if (err) {
+//     console.error('Error connecting to the database:', err);
+//     return;
+//   }
+//   console.log('Connected to the MySQL database');
+// });
+
+// app.get('/list-invoices-mysql', (req, res) => {
+//   // Query the database to get invoices
+//   const query = 'SELECT * FROM invoices'; // Replace 'invoices' with your table name
+
+//   connection.query(query, (err, results) => {
+//     if (err) {
+//       console.error('Error executing query:', err);
+//       res.status(500).send('Server error');
+//       return;
+//     }
+
+//     // Send the results as the response
+//     res.json(results);
+//   });
+// });
 
 // Endpoint to save an invoice
 app.post('/save-invoice', (req, res) => {
