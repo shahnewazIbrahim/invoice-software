@@ -2,17 +2,27 @@ const express = require('express');
 const cors = require('cors');  // Import the cors middleware
 const fs = require('fs');
 const path = require('path');
-// const mysql = require('mysql2');
+const mysql = require('mysql2');
+const knex = require('knex');
 
 const app = express();
 
-// const connection = mysql.createConnection({
-//   host: 'localhost',  // Replace with your database host
-//   user: 'root',  // Replace with your MySQL username
-//   password: '',  // Replace with your MySQL password
-//   database: 'hydra.sqlite'  // Replace with your database name
-// });
+const connection = mysql.createConnection({
+  host: 'localhost',  // Replace with your database host
+  user: 'root',  // Replace with your MySQL username
+  password: '',  // Replace with your MySQL password
+  database: 'invoice_management'  // Replace with your database name
+});
 
+const db = knex({
+  client: 'mysql2',
+  connection: {
+    host: 'localhost',  // Replace with your database host
+    user: 'root',  // Replace with your MySQL username
+    password: '',  // Replace with your MySQL password
+    database: 'invoice_management'
+  }
+});
 // Enable CORS for all routes
 app.use(cors());
 
@@ -24,29 +34,81 @@ if (!fs.existsSync(dataFolder)) {
   fs.mkdirSync(dataFolder);
 }
 
-// connection.connect((err) => {
-//   if (err) {
-//     console.error('Error connecting to the database:', err);
-//     return;
-//   }
-//   console.log('Connected to the MySQL database');
-// });
+connection.connect((err) => {
+  if (err) {
+    console.error('Error connecting to the database:', err);
+    return;
+  }
+  console.log('Connected to the MySQL database');
+});
 
-// app.get('/list-invoices-mysql', (req, res) => {
-//   // Query the database to get invoices
-//   const query = 'SELECT * FROM invoices'; // Replace 'invoices' with your table name
+app.get('/list-invoices-mysql', async (req, res) => {
+  // Query the database to get invoices
 
-//   connection.query(query, (err, results) => {
-//     if (err) {
-//       console.error('Error executing query:', err);
-//       res.status(500).send('Server error');
-//       return;
-//     }
+  try {
+    const invoices = await db('invoices').select('*'); // Replace 'invoices' with your table name
+    res.json(invoices);
+  } catch (err) {
+    console.error('Error fetching invoices:', err);
+    res.status(500).send('Server error');
+  }
+  // const query = 'SELECT * FROM invoices'; // Replace 'invoices' with your table name
 
-//     // Send the results as the response
-//     res.json(results);
-//   });
-// });
+  // connection.query(query, (err, results) => {
+  //   if (err) {
+  //     console.error('Error executing query:', err);
+  //     res.status(500).send('Server error');
+  //     return;
+  //   }
+
+  //   // Send the results as the response
+  //   res.json(results);
+  // });
+});
+
+
+app.post('/invoice-create-mysql', async (req, res) => {
+  // // Query the database to get invoices
+  const { invoiceNumber, invoiceDate, dueDate, clientName, status } = req.body;
+  // // Create the SQL query to insert a new invoice
+  // const query = `
+  //   INSERT INTO invoices (invoiceNumber, invoiceDate, dueDate, clientName, status)
+  //   VALUES (?, ?, ?, ?, ?)
+  // `;
+
+  // // return res.status(500).send({ invoiceNumber, invoiceDate, dueDate, clientName, status })
+  // // Execute the query with the provided values
+  // connection.query(query, [invoiceNumber, invoiceDate, dueDate, clientName, status], (err, results) => {
+  //   if (err) {
+  //     console.error('Error creating invoice:', err);
+  //     res.status(500).send(err.sqlMessage);
+  //     return;
+  //   }
+
+  //   // Send back the ID of the newly created invoice
+  //   res.status(201).json({
+  //     message: 'Invoice created successfully',
+  //     invoice_id: results.insertId
+  //   });
+  // });
+  const data = {
+    invoiceNumber, 
+    invoiceDate, 
+    dueDate, 
+    clientName, 
+    status
+  }
+  try {
+    const invoices = await db('invoices').insert(data).then(() => console.log('Record inserted')); // Replace 'invoices' with your table name
+    res.status(201).json({
+      message: 'Invoice created successfully',
+      invoice_id: invoices
+    });
+  } catch (err) {
+    console.error('Error fetching invoices:', err);
+    res.status(500).send('Server error');
+  }
+});
 
 // Endpoint to save an invoice
 app.post('/save-invoice', (req, res) => {
