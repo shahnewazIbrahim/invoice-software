@@ -79,7 +79,7 @@ const submitInvoice = () => {
 
 <template>
   <div>
-    <div class="text-right max-w-7xl mb-4">
+    <div class="text-right max-w-6xl mb-4">
 
       <button
         @click="goBack"
