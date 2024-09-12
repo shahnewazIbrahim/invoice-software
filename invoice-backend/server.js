@@ -69,14 +69,15 @@ app.get('/list-invoices-mysql', async (req, res) => {
 
 app.post('/invoice-create-mysql', async (req, res) => {
   // // Query the database to get invoices
-  const { invoiceNumber, invoiceDate, dueDate, clientName, status } = req.body;
+  const { invoiceNumber, invoiceDate, dueDate, clientName, clientEmail, status } = req.body;
+  const { description, quantity, price } = req.body.items;
   // // Create the SQL query to insert a new invoice
   // const query = `
   //   INSERT INTO invoices (invoiceNumber, invoiceDate, dueDate, clientName, status)
   //   VALUES (?, ?, ?, ?, ?)
   // `;
 
-  // // return res.status(500).send({ invoiceNumber, invoiceDate, dueDate, clientName, status })
+  // return res.status(500).send({ description, quantity, price })
   // // Execute the query with the provided values
   // connection.query(query, [invoiceNumber, invoiceDate, dueDate, clientName, status], (err, results) => {
   //   if (err) {
@@ -91,15 +92,35 @@ app.post('/invoice-create-mysql', async (req, res) => {
   //     invoice_id: results.insertId
   //   });
   // });
-  const data = {
+  const invoiceData = {
     invoiceNumber, 
     invoiceDate, 
     dueDate, 
     clientName, 
+    clientEmail, 
     status
   }
   try {
-    const invoices = await db('invoices').insert(data).then(() => console.log('Record inserted')); // Replace 'invoices' with your table name
+    let invoiceId = 0;
+    const invoices = await db('invoices').insert(invoiceData).then((res) => {
+                              invoiceId = res[0]
+                              console.log('invoices Record inserted', res[0])
+                            }); // Replace 'invoices' with your table name
+
+    if (invoiceId && req.body.items.length) {
+      await req.body.items.forEach(async (item) =>{
+        await db('invoice_items').insert(
+          {
+            invoiceId: invoiceId,
+            description: item.description, 
+            quantity: item.quantity, 
+            price: item.price
+          }
+        ).then((res) => {
+                console.log('invoicesItems Record inserted', res[0])
+              }); 
+          })
+    }                 
     res.status(201).json({
       message: 'Invoice created successfully',
       invoice_id: invoices
@@ -111,22 +132,62 @@ app.post('/invoice-create-mysql', async (req, res) => {
 });
 
 // Endpoint to save an invoice
-app.post('/save-invoice', (req, res) => {
-  const invoice = req.body;
-  const invoiceNumber = invoice.invoiceNumber;
+app.post('/save-invoice', async (req, res) => {
+  // const invoice = req.body;
+  // const invoiceNumber = invoice.invoiceNumber;
 
-  if (!invoiceNumber) {
-    return res.status(400).json({ error: 'Invoice number is required' });
+  // if (!invoiceNumber) {
+  //   return res.status(400).json({ error: 'Invoice number is required' });
+  // }
+
+  // const filePath = path.join(dataFolder, `${invoiceNumber}.json`);
+
+  // fs.writeFile(filePath, JSON.stringify(invoice, null, 2), (err) => {
+  //   if (err) {
+  //     return res.status(500).json({ error: 'Failed to save invoice' });
+  //   }
+  //   res.json({ message: 'Invoice saved successfully' });
+  // });
+
+  const { invoiceNumber, invoiceDate, dueDate, clientName, clientEmail, status } = req.body;
+  const { description, quantity, price } = req.body.items;
+
+  const invoiceData = {
+    invoiceNumber, 
+    invoiceDate, 
+    dueDate, 
+    clientName, 
+    clientEmail, 
+    status
   }
+  try {
+    let invoiceId = 0;
+    const invoices = await db('invoices').insert(invoiceData).then((res) => {
+                              invoiceId = res[0]
+                              console.log('invoices Record inserted', res[0])
+                            }); // Replace 'invoices' with your table name
 
-  const filePath = path.join(dataFolder, `${invoiceNumber}.json`);
-
-  fs.writeFile(filePath, JSON.stringify(invoice, null, 2), (err) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to save invoice' });
-    }
-    res.json({ message: 'Invoice saved successfully' });
-  });
+    req.body.items.forEach(async (item) =>{
+      await db('invoice_items').insert(
+        {
+          invoiceId: item.invoiceId,
+          description: item.description, 
+          quantity: item.quantity, 
+          price: item.price
+        }
+      ).then((res) => {
+              invoiceId = res[0]
+              console.log('invoicesItems Record inserted', res[0])
+            }); 
+        })
+    res.status(201).json({
+      message: 'Invoice created successfully',
+      invoice_id: invoices
+    });
+  } catch (err) {
+    console.error('Error fetching invoices:', err);
+    res.status(500).send('Server error');
+  }
 });
 
 app.get('/count-invoices', (req, res) => {
