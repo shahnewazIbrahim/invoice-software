@@ -102,25 +102,35 @@ app.post('/invoice-create-mysql', async (req, res) => {
   }
   try {
     let invoiceId = 0;
+    console.log('ddfdf',invoiceId && req.body.items.length)  
     const invoices = await db('invoices').insert(invoiceData).then((res) => {
                               invoiceId = res[0]
                               console.log('invoices Record inserted', res[0])
                             }); // Replace 'invoices' with your table name
-
+                          console.log('ddfdf',invoiceId && req.body.items.length)  
     if (invoiceId && req.body.items.length) {
       await req.body.items.forEach(async (item) =>{
-        await db('invoice_items').insert(
-          {
-            invoiceId: invoiceId,
-            description: item.description, 
-            quantity: item.quantity, 
-            price: item.price
-          }
-        ).then((res) => {
-                console.log('invoicesItems Record inserted', res[0])
-              }); 
-          })
-    }                 
+        console.log({
+              invoiceId: parseInt(invoiceId),
+              description: item.description, 
+              quantity: item.quantity, 
+              price: item.price
+            }
+          )
+        // await db('invoice_items').insert(
+        //   {
+        //     invoiceId: invoiceId,
+        //     description: item.description, 
+        //     quantity: item.quantity, 
+        //     price: item.price
+        //   }
+        // )
+        // .then((res) => {
+        //         console.log('invoicesItems Record inserted', res[0])
+        // }); 
+      })
+    } 
+
     res.status(201).json({
       message: 'Invoice created successfully',
       invoice_id: invoices
@@ -170,7 +180,7 @@ app.post('/save-invoice', async (req, res) => {
     req.body.items.forEach(async (item) =>{
       await db('invoice_items').insert(
         {
-          invoiceId: item.invoiceId,
+          invoiceId: invoiceId,
           description: item.description, 
           quantity: item.quantity, 
           price: item.price
