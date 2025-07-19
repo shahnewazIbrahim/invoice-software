@@ -312,27 +312,64 @@ app.get('/list-invoices', (req, res) => {
 
 
 // edit invoice view
-app.get('/invoices/:invoiceNumber', (req, res) => {
+// app.get('/invoices/:invoiceNumber', (req, res) => {
+//   const invoiceNumber = req.params.invoiceNumber;
+//   const filePath = path.join(dataFolder, `${invoiceNumber}.json`);
+
+//   fs.readFile(filePath, 'utf8', (err, data) => {
+//     if (err) {
+//       if (err.code === 'ENOENT') {
+//         return res.status(404).json({ error: 'Invoice not found' });
+//       } else {
+//         return res.status(500).json({ error: 'Failed to read invoice' });
+//       }
+//     }
+
+//     try {
+//       const invoice = JSON.parse(data);
+//       res.json({ invoice });
+//     } catch (parseError) {
+//       res.status(500).json({ error: 'Failed to parse invoice' });
+//     }
+//   });
+// });
+
+app.get('/invoices/:invoiceNumber', async (req, res) => {
   const invoiceNumber = req.params.invoiceNumber;
-  const filePath = path.join(dataFolder, `${invoiceNumber}.json`);
 
-  fs.readFile(filePath, 'utf8', (err, data) => {
-    if (err) {
-      if (err.code === 'ENOENT') {
-        return res.status(404).json({ error: 'Invoice not found' });
-      } else {
-        return res.status(500).json({ error: 'Failed to read invoice' });
-      }
+  try {
+    // Step 1: Invoice খুঁজে বের করা
+    const invoice = await db('invoices')
+      .where('invoiceNumber', invoiceNumber)
+      .first();
+
+    if (!invoice) {
+      return res.status(404).json({ error: 'Invoice not found' });
     }
 
-    try {
-      const invoice = JSON.parse(data);
-      res.json({ invoice });
-    } catch (parseError) {
-      res.status(500).json({ error: 'Failed to parse invoice' });
-    }
-  });
+    // Step 2: এই invoice-এর items খুঁজে বের করা
+    const items = await db('invoice_items')
+      .where('invoiceId', invoice.id)
+      .select('description', 'quantity', 'price');
+
+    // Step 3: JSON তৈরি করা
+    const result = {
+      invoiceNumber: invoice.invoiceNumber,
+      invoiceDate: invoice.invoiceDate,
+      dueDate: invoice.dueDate,
+      clientName: invoice.clientName,
+      clientEmail: invoice.clientEmail,
+      status: invoice.status,
+      items: items
+    };
+
+    res.json(result);
+  } catch (err) {
+    console.error('Error fetching invoice:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
+
 
 
 app.put('/invoices/:invoiceNumber', (req, res) => {
