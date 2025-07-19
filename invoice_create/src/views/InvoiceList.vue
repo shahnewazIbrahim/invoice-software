@@ -21,9 +21,12 @@ function getAmount(invoice) {
   return amount;
 }
 onMounted(async () => {
-  let response = await axios.get("http://localhost:3000/list-invoices");
+  // let response = await axios.get("http://localhost:3000/list-invoices");
+  let response = await axios.get("http://localhost:3000/list-invoices-mysql");
+// console.log(response.data);
 
-  invoices.value = response.data.invoices;
+  // invoices.value = response.data.invoices;
+  invoices.value = response.data;
 });
 
 const fetchInvoices = async () => {
@@ -74,7 +77,6 @@ const deleteInvoice = async (id) => {
         Create New Invoice
       </router-link>
     </header>
-
     <!-- Invoice Table -->
     <div class="bg-white rounded-lg shadow-md">
       <table class="min-w-full divide-y divide-gray-200">
@@ -118,7 +120,8 @@ const deleteInvoice = async (id) => {
             </th>
           </tr>
         </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
+        <tbody class="bg-white divide-y divide-gray-200" v-if="invoices.length > 0">
+          <!-- <span v-for="invoice in invoices">{{ invoice }}</span> -->
           <tr v-for="invoice in invoices" :key="invoice.id">
             <td
               class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
@@ -129,7 +132,7 @@ const deleteInvoice = async (id) => {
               {{ invoice.invoiceDate }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ getAmount(invoice) }} Tk
+              <!-- {{ getAmount(invoice) }} Tk -->
             </td>
 
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

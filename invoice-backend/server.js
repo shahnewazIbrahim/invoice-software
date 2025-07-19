@@ -47,6 +47,7 @@ app.get('/list-invoices-mysql', async (req, res) => {
 
   try {
     const invoices = await db('invoices').select('*'); // Replace 'invoices' with your table name
+    // Replace 'invoices' with your table name
     res.json(invoices);
   } catch (err) {
     console.error('Error fetching invoices:', err);
