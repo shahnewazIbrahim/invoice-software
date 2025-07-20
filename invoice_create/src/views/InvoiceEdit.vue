@@ -17,7 +17,8 @@ onBeforeMount(async () => {
     `http://localhost:3000/invoices/${route.params.id}`
   );
 
-  invoice.value = response.data.invoice;
+  // invoice.value = response.data.invoice;
+  invoice.value = response.data;
 });
 
 const addItem = () => {

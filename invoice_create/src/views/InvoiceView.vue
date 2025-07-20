@@ -21,7 +21,8 @@ onBeforeMount(async () => {
     `http://localhost:3000/invoices/${route.params.id}`
   );
 
-  invoice.value = response.data.invoice;
+  // invoice.value = response.data.invoice;
+  invoice.value = response.data;
 });
 
 const goBack = () => {
@@ -35,6 +36,7 @@ function printInvoice() {
 </script>
 
 <template>
+
   <div class="container mx-auto p-6 bg-white shadow-md rounded-lg">
     <div class="flex justify-between items-center mb-4">
       <h1 class="text-2xl font-bold">Invoice #{{ invoice.invoiceNumber }}</h1>

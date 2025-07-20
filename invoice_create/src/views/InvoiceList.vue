@@ -23,16 +23,17 @@ function getAmount(invoice) {
 onMounted(async () => {
   // let response = await axios.get("http://localhost:3000/list-invoices");
   let response = await axios.get("http://localhost:3000/list-invoices-mysql");
-// console.log(response.data);
+  // console.log(response.data);
 
   // invoices.value = response.data.invoices;
   invoices.value = response.data;
 });
 
 const fetchInvoices = async () => {
-  let response = await axios.get("http://localhost:3000/list-invoices");
-
-  invoices.value = response.data.invoices;
+  // let response = await axios.get("http://localhost:3000/list-invoices");
+  // invoices.value = response.data.invoices;
+  let response = await axios.get("http://localhost:3000/list-invoices-mysql");
+  invoices.value = response.data;
 };
 
 const deleteInvoice = async (id) => {
@@ -49,7 +50,7 @@ const deleteInvoice = async (id) => {
         position: "top-right",
       });
       // After deletion, navigate back to the invoice list or another appropriate page
-      fetchInvoices()
+      fetchInvoices();
       router.push("/invoices");
     }
   } catch (error) {
@@ -120,7 +121,10 @@ const deleteInvoice = async (id) => {
             </th>
           </tr>
         </thead>
-        <tbody class="bg-white divide-y divide-gray-200" v-if="invoices.length > 0">
+        <tbody
+          class="bg-white divide-y divide-gray-200"
+          v-if="invoices.length > 0"
+        >
           <!-- <span v-for="invoice in invoices">{{ invoice }}</span> -->
           <tr v-for="invoice in invoices" :key="invoice.id">
             <td
@@ -132,7 +136,7 @@ const deleteInvoice = async (id) => {
               {{ invoice.invoiceDate }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              <!-- {{ getAmount(invoice) }} Tk -->
+              {{ getAmount(invoice) }} Tk
             </td>
 
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

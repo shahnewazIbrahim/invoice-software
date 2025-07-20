@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const mysql = require('mysql2');
 const knex = require('knex');
+const dayjs = require('dayjs');
 
 const app = express();
 
@@ -45,14 +46,71 @@ connection.connect((err) => {
 app.get('/list-invoices-mysql', async (req, res) => {
   // Query the database to get invoices
 
+  // try {
+  //   const invoices = await db('invoices').select('*'); // Replace 'invoices' with your table name
+  //   // Replace 'invoices' with your table name
+  //   res.json(invoices);
+  // } catch (err) {
+  //   console.error('Error fetching invoices:', err);
+  //   res.status(500).send('Server error');
+  // }
+
   try {
-    const invoices = await db('invoices').select('*'); // Replace 'invoices' with your table name
-    // Replace 'invoices' with your table name
-    res.json(invoices);
-  } catch (err) {
-    console.error('Error fetching invoices:', err);
-    res.status(500).send('Server error');
+  const rows = await db('invoices')
+    .leftJoin('invoice_items', 'invoices.id', 'invoice_items.invoiceId')
+    .select(
+      'invoices.id',
+      'invoices.invoiceNumber',
+      'invoices.clientName',
+      'invoices.invoiceDate',
+      'invoices.dueDate',
+      'invoices.status',
+      'invoice_items.id as item_id',
+      'invoice_items.invoiceId',
+      'invoice_items.description',
+      'invoice_items.quantity',
+      'invoice_items.price',
+    );
+
+  // return res.json(rows)
+  // Grouping logic
+  const grouped = {};
+
+  for (const row of rows) {
+    const invoiceId = row.id;
+
+    if (!grouped[invoiceId]) {
+      grouped[invoiceId] = {
+        id: invoiceId,
+        invoiceNumber: row.invoiceNumber,
+        clientName: row.clientName,
+        clientEmail: row.clientEmail,
+        invoiceDate: dayjs(row.invoiceDate).format("YYYY-MM-DD"),
+        dueDate: dayjs(row.dueDate).format("YYYY-MM-DD"),
+        status: row.status,
+        items: []
+      };
+    }
+
+    if (row.invoiceId) {
+      grouped[invoiceId].items.push({
+        id: row.id,
+        invoiceId: row.invoiceId,
+        quantity: row.quantity,
+        price: parseFloat(row.price)
+      });
+    }
   }
+
+  const invoices = Object.values(grouped);
+  res.json(invoices);
+} catch (err) {
+  console.error('Error fetching invoices:', err);
+  res.status(500).send('Server error');
+}
+
+
+
   // const query = 'SELECT * FROM invoices'; // Replace 'invoices' with your table name
 
   // connection.query(query, (err, results) => {
@@ -142,24 +200,45 @@ app.post('/invoice-create-mysql', async (req, res) => {
   }
 });
 
+app.get('/invoices/:invoiceNumber', async (req, res) => {
+  const invoiceNumber = req.params.invoiceNumber;
+
+  try {
+    // Step 1: Invoice খুঁজে বের করা
+    const invoice = await db('invoices')
+      .where('invoiceNumber', invoiceNumber)
+      .first();
+
+    if (!invoice) {
+      return res.status(404).json({ error: 'Invoice not found' });
+    }
+
+    // Step 2: এই invoice-এর items খুঁজে বের করা
+    const items = await db('invoice_items')
+      .where('invoiceId', invoice.id)
+      .select('description', 'quantity', 'price');
+
+    // Step 3: JSON তৈরি করা
+    const result = {
+      invoiceNumber: invoice.invoiceNumber,
+      invoiceDate: dayjs(invoice.invoiceDate).format("YYYY-MM-DD"),
+      dueDate: dayjs(invoice.dueDate).format("YYYY-MM-DD"),
+      clientName: invoice.clientName,
+      clientEmail: invoice.clientEmail,
+      status: invoice.status,
+      items: items
+    };
+
+    res.json(result);
+  } catch (err) {
+    console.error('Error fetching invoice:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
 // Endpoint to save an invoice
 app.post('/save-invoice', async (req, res) => {
-  // const invoice = req.body;
-  // const invoiceNumber = invoice.invoiceNumber;
-
-  // if (!invoiceNumber) {
-  //   return res.status(400).json({ error: 'Invoice number is required' });
-  // }
-
-  // const filePath = path.join(dataFolder, `${invoiceNumber}.json`);
-
-  // fs.writeFile(filePath, JSON.stringify(invoice, null, 2), (err) => {
-  //   if (err) {
-  //     return res.status(500).json({ error: 'Failed to save invoice' });
-  //   }
-  //   res.json({ message: 'Invoice saved successfully' });
-  // });
-
   const { invoiceNumber, invoiceDate, dueDate, clientName, clientEmail, status } = req.body;
   const { description, quantity, price } = req.body.items;
 
@@ -200,6 +279,7 @@ app.post('/save-invoice', async (req, res) => {
     res.status(500).send('Server error');
   }
 });
+
 
 app.get('/count-invoices', (req, res) => {
   fs.readdir(dataFolder, (err, files) => {
@@ -270,45 +350,127 @@ app.get('/count-invoices', (req, res) => {
 });
 
 
+app.put('/invoices/:invoiceNumber', async (req, res) => {
+  const invoiceNumber = req.params.invoiceNumber;
+  const updatedInvoice = req.body;
 
-app.get('/list-invoices', (req, res) => {
-  fs.readdir(dataFolder, (err, files) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to read invoice directory' });
+  if (!updatedInvoice || updatedInvoice.invoiceNumber !== invoiceNumber) {
+    return res.status(400).json({ error: 'Invoice number mismatch or invalid data' });
+  }
+
+  try {
+    // Step 1: Get the invoice from DB
+    const invoice = await db('invoices')
+      .where({ invoiceNumber })
+      .first();
+
+    if (!invoice) {
+      return res.status(404).json({ error: 'Invoice not found' });
     }
 
-    // Filter out only .json files
-    const invoiceFiles = files.filter(file => file.endsWith('.json'));
-
-    // Read each invoice file and collect their content
-    const invoices = [];
-    let filesRead = 0;
-
-    invoiceFiles.forEach(file => {
-      const filePath = path.join(dataFolder, file);
-
-      fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) {
-          return res.status(500).json({ error: 'Failed to read invoice file' });
-        }
-
-        invoices.push(JSON.parse(data));
-        filesRead++;
-
-        // When all files are read, send the response
-        if (filesRead === invoiceFiles.length) {
-          invoices.sort((a, b) => a.invoiceNumber - b.invoiceNumber);
-          res.json({ invoices : invoices });
-        }
+    // Step 2: Update the invoice table
+    await db('invoices')
+      .where({ invoiceNumber })
+      .update({
+        invoiceDate: updatedInvoice.invoiceDate,
+        dueDate: updatedInvoice.dueDate,
+        clientName: updatedInvoice.clientName,
+        clientEmail: updatedInvoice.clientEmail,
+        status: updatedInvoice.status
       });
+
+    // Step 3: Delete old items for this invoice
+    await db('invoice_items').where({ invoiceId: invoice.id }).del();
+
+    // Step 4: Insert new items
+    const items = updatedInvoice.items || [];
+    if (items.length > 0) {
+      const itemInserts = items.map(item => ({
+        invoiceId: invoice.id,
+        description: item.description,
+        quantity: item.quantity,
+        price: item.price
+      }));
+
+      await db('invoice_items').insert(itemInserts);
+    }
+
+    return res.json({ message: 'Invoice updated successfully' });
+  } catch (err) {
+    console.error('Error updating invoice:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.delete('/invoices/:invoiceNumber', async (req, res) => {
+  const invoiceNumber = req.params.invoiceNumber;
+
+  try {
+    // Step 1: Get the invoice record by invoiceNumber
+    const invoice = await db('invoices')
+      .where({ invoiceNumber })
+      .first();
+
+    if (!invoice) {
+      return res.status(404).json({ error: 'Invoice not found' });
+    }
+
+    // Step 2: Begin a transaction to ensure atomicity
+    await db.transaction(async trx => {
+      // Step 3: Delete all items related to the invoice
+      await trx('invoice_items').where({ invoiceId: invoice.id }).del();
+
+      // Step 4: Delete the invoice itself
+      await trx('invoices').where({ id: invoice.id }).del();
     });
 
-    // If there are no invoice files, send an empty list
-    if (invoiceFiles.length === 0) {
-      res.json({ invoices: [] });
-    }
-  });
+    res.json({ message: 'Invoice deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting invoice:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
+
+
+
+// app.get('/list-invoices', (req, res) => {
+//   fs.readdir(dataFolder, (err, files) => {
+//     if (err) {
+//       return res.status(500).json({ error: 'Failed to read invoice directory' });
+//     }
+
+//     // Filter out only .json files
+//     const invoiceFiles = files.filter(file => file.endsWith('.json'));
+
+//     // Read each invoice file and collect their content
+//     const invoices = [];
+//     let filesRead = 0;
+
+//     invoiceFiles.forEach(file => {
+//       const filePath = path.join(dataFolder, file);
+
+//       fs.readFile(filePath, 'utf8', (err, data) => {
+//         if (err) {
+//           return res.status(500).json({ error: 'Failed to read invoice file' });
+//         }
+
+//         invoices.push(JSON.parse(data));
+//         filesRead++;
+
+//         // When all files are read, send the response
+//         if (filesRead === invoiceFiles.length) {
+//           invoices.sort((a, b) => a.invoiceNumber - b.invoiceNumber);
+//           res.json({ invoices : invoices });
+//         }
+//       });
+//     });
+
+//     // If there are no invoice files, send an empty list
+//     if (invoiceFiles.length === 0) {
+//       res.json({ invoices: [] });
+//     }
+//   });
+// });
 
 
 // edit invoice view
@@ -334,99 +496,81 @@ app.get('/list-invoices', (req, res) => {
 //   });
 // });
 
-app.get('/invoices/:invoiceNumber', async (req, res) => {
-  const invoiceNumber = req.params.invoiceNumber;
+// app.post('/save-invoice', async (req, res) => {
+//   const invoice = req.body;
+//   const invoiceNumber = invoice.invoiceNumber;
 
-  try {
-    // Step 1: Invoice খুঁজে বের করা
-    const invoice = await db('invoices')
-      .where('invoiceNumber', invoiceNumber)
-      .first();
+//   if (!invoiceNumber) {
+//     return res.status(400).json({ error: 'Invoice number is required' });
+//   }
 
-    if (!invoice) {
-      return res.status(404).json({ error: 'Invoice not found' });
-    }
+//   const filePath = path.join(dataFolder, `${invoiceNumber}.json`);
 
-    // Step 2: এই invoice-এর items খুঁজে বের করা
-    const items = await db('invoice_items')
-      .where('invoiceId', invoice.id)
-      .select('description', 'quantity', 'price');
-
-    // Step 3: JSON তৈরি করা
-    const result = {
-      invoiceNumber: invoice.invoiceNumber,
-      invoiceDate: invoice.invoiceDate,
-      dueDate: invoice.dueDate,
-      clientName: invoice.clientName,
-      clientEmail: invoice.clientEmail,
-      status: invoice.status,
-      items: items
-    };
-
-    res.json(result);
-  } catch (err) {
-    console.error('Error fetching invoice:', err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
+//   fs.writeFile(filePath, JSON.stringify(invoice, null, 2), (err) => {
+//     if (err) {
+//       return res.status(500).json({ error: 'Failed to save invoice' });
+//     }
+//     res.json({ message: 'Invoice saved successfully' });
+//   });
+// });
 
 
+// app.put('/invoices/:invoiceNumber', (req, res) => {
+//   const invoiceNumber = req.params.invoiceNumber;
+//   const updatedInvoice = req.body;
 
-app.put('/invoices/:invoiceNumber', (req, res) => {
-  const invoiceNumber = req.params.invoiceNumber;
-  const updatedInvoice = req.body;
+//   // Ensure the invoiceNumber in the URL matches the one in the body (if present)
+//   if (!updatedInvoice || updatedInvoice.invoiceNumber !== invoiceNumber) {
+//     return res.status(400).json({ error: 'Invoice number mismatch or invalid data' });
+//   }
 
-  // Ensure the invoiceNumber in the URL matches the one in the body (if present)
-  if (!updatedInvoice || updatedInvoice.invoiceNumber !== invoiceNumber) {
-    return res.status(400).json({ error: 'Invoice number mismatch or invalid data' });
-  }
+//   const filePath = path.join(dataFolder, `${invoiceNumber}.json`);
 
-  const filePath = path.join(dataFolder, `${invoiceNumber}.json`);
+//   // Check if the invoice exists before updating
+//   fs.access(filePath, fs.constants.F_OK, (err) => {
+//     if (err) {
+//       if (err.code === 'ENOENT') {
+//         return res.status(404).json({ error: 'Invoice not found' });
+//       } else {
+//         return res.status(500).json({ error: 'Failed to access invoice' });
+//       }
+//     }
 
-  // Check if the invoice exists before updating
-  fs.access(filePath, fs.constants.F_OK, (err) => {
-    if (err) {
-      if (err.code === 'ENOENT') {
-        return res.status(404).json({ error: 'Invoice not found' });
-      } else {
-        return res.status(500).json({ error: 'Failed to access invoice' });
-      }
-    }
-
-    // If the invoice exists, update it with the new data
-    fs.writeFile(filePath, JSON.stringify(updatedInvoice, null, 2), (err) => {
-      if (err) {
-        return res.status(500).json({ error: 'Failed to update invoice' });
-      }
-      res.json({ message: 'Invoice updated successfully' });
-    });
-  });
-});
+//     // If the invoice exists, update it with the new data
+//     fs.writeFile(filePath, JSON.stringify(updatedInvoice, null, 2), (err) => {
+//       if (err) {
+//         return res.status(500).json({ error: 'Failed to update invoice' });
+//       }
+//       res.json({ message: 'Invoice updated successfully' });
+//     });
+//   });
+// });
 
 
-app.delete('/invoices/:invoiceNumber', (req, res) => {
-  const invoiceNumber = req.params.invoiceNumber;
-  const filePath = path.join(dataFolder, `${invoiceNumber}.json`);
 
-  // Check if the invoice file exists before attempting to delete it
-  fs.access(filePath, fs.constants.F_OK, (err) => {
-    if (err) {
-      if (err.code === 'ENOENT') {
-        return res.status(404).json({ error: 'Invoice not found' });
-      } else {
-        return res.status(500).json({ error: 'Failed to access invoice' });
-      }
-    }
+// app.delete('/invoices/:invoiceNumber', (req, res) => {
+//   const invoiceNumber = req.params.invoiceNumber;
+//   const filePath = path.join(dataFolder, `${invoiceNumber}.json`);
 
-    // If the file exists, delete it
-    fs.unlink(filePath, (err) => {
-      if (err) {
-        return res.status(500).json({ error: 'Failed to delete invoice' });
-      }
-      res.json({ message: 'Invoice deleted successfully' });
-    });
-  });
-});
+//   // Check if the invoice file exists before attempting to delete it
+//   fs.access(filePath, fs.constants.F_OK, (err) => {
+//     if (err) {
+//       if (err.code === 'ENOENT') {
+//         return res.status(404).json({ error: 'Invoice not found' });
+//       } else {
+//         return res.status(500).json({ error: 'Failed to access invoice' });
+//       }
+//     }
+
+//     // If the file exists, delete it
+//     fs.unlink(filePath, (err) => {
+//       if (err) {
+//         return res.status(500).json({ error: 'Failed to delete invoice' });
+//       }
+//       res.json({ message: 'Invoice deleted successfully' });
+//     });
+//   });
+// });
 
 
 
